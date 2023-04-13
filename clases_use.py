@@ -1,5 +1,6 @@
 from collections import UserDict
 from datetime import datetime, timedelta
+from itertools import islice
 
 
 class Field:
@@ -18,17 +19,25 @@ class Field:
         return self.__value
 
     @value.setter
-    def value(self, value):
+    def value(self, value: str):
 
         if isinstance(self, Phone):
             for ch in value:
                 if not ch.isdigit():
                     raise ValueError(f"Inputted not correctly phone: {value}: must consist only digits!")
-
-            self.__value = value
-
         elif isinstance(self, Birthday):
-            self.__value = value
+
+            list_birthday_parts = [int(i.strip()) for i in value.split(".")]
+
+            if len(list_birthday_parts) != 3:
+                raise ValueError(f"Inputted date of birth: {value}: non correct! Use format year.month.day")
+
+            datetime_b = datetime(list_birthday_parts[0], list_birthday_parts[1], list_birthday_parts[2])
+
+            if datetime_b.date() >= datetime.today().date():
+                raise ValueError(f"Inputted date of birth: {value}: non correct!")
+
+        self.__value = value
 
 
 class Name(Field):
@@ -61,6 +70,9 @@ class Record:
             self.phones.append(phone)
 
     def __str__(self):
+        return f"{self.name}: {', '.join([str(i) for i in self.phones])} {': ' + str(self.birthday) if self.birthday else ''}"
+
+    def __repr__(self):
         return f"{self.name}: {', '.join([str(i) for i in self.phones])} {': ' + str(self.birthday) if self.birthday else ''}"
 
     def add_phone(self, phone: Phone):
@@ -106,13 +118,13 @@ class Record:
 
         if self.birthday:
 
-            tooday = datetime.today()
+            tooday = datetime.today().date()
 
             birthday_str = self.birthday.value
 
             list_b_data = birthday_str.split(".")
 
-            datetime_birth = datetime(int(list_b_data[0]), int(list_b_data[1]), int(list_b_data[2]))
+            datetime_birth = datetime(int(list_b_data[0]), int(list_b_data[1]), int(list_b_data[2])).date()
 
             year = tooday.year
 
@@ -124,7 +136,7 @@ class Record:
             elif datetime_birth.month == tooday.month and datetime_birth.day < tooday.day:
                 year += 1
 
-            difference_dates: timedelta = datetime(year, datetime_birth.month, datetime_birth.day) - tooday
+            difference_dates: timedelta = datetime(year, datetime_birth.month, datetime_birth.day).date() - tooday
 
             return f"Contact: {self} Day to next birthday: {difference_dates.days + 1}"
         else:
@@ -136,6 +148,14 @@ class AddressBook(UserDict):
     def add_record(self, record: Record):
         self.data[record.name.value] = record
         # return f"{self} added to adres book!"
+
+    def iterator(self, records_count=3):
+        start_iterate = 0
+        while True:
+            if start_iterate >= len(self.data):
+                break
+            yield list(self.data.values())[start_iterate: start_iterate + records_count]
+            start_iterate += records_count
 
     def __str__(self):
         return ";\n".join([f"{k}: {v}" for k, v in self.data.items()])

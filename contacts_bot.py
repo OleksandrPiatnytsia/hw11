@@ -1,4 +1,4 @@
-from clases_use import AddressBook, Name, Phone, Record
+from clases_use import AddressBook, Name, Phone, Record, Birthday
 
 
 def input_error(func):
@@ -38,7 +38,7 @@ I can add new contact with command: 'del', use following syntax: del 'contact na
 I can change existing contact with command: 'change', use following syntax: change 'contact name, old_phone, new_phone'
 I can find contact by phone with command: 'phone', use following syntax: phone 'contact name'
 For viewing all list use command: 'show'
-For exit use commands: 'stop', 'close', 'exit' or 'good bye'"""
+For exit use commands: 'exit'"""
 
 
 @input_error
@@ -49,9 +49,6 @@ def hello(*args):
 @input_error
 def no_command(*args):
     return f"No such '{args[0]}' command use command 'help'"
-
-    # raise ValueError("No such command use command")
-
 
 @input_error
 def add(*args):
@@ -131,16 +128,6 @@ def change(*args):
         old_phone = Phone(phones_params[0])
         new_phone = Phone(params_list[2].strip().split(" ")[0])
 
-        # for ch in old_phone:
-        #     if not ch.isdigit():
-        #         return f"Inputted not correctly data: {old_phone}: must consist only digits!"
-        #
-        # new_phone = params_list[2].strip().split(" ")[0]
-        #
-        # for ch in new_phone:
-        #     if not ch.isdigit():
-        #         return f"Inputted not correctly data: {new_phone}: must consist only digits!"
-
         result = record_exist.change_phone(old_phone, new_phone)
 
         return result
@@ -169,17 +156,37 @@ def phone(*args):
 
 @input_error
 def show_all(*args):
-    return CONTACT_DICT
+    records_count = args[0]
+    if records_count:
+        for i in CONTACT_DICT.iterator(int(records_count)):
+            print(i)
+    else:
+        return CONTACT_DICT
 
 
 @input_error
 def exit(*args):
     return f"Work ended"
 
+@input_error
+def days_to_birthday(*args):
+    input_contact_name = args[0]
+
+    if input_contact_name:
+        for contact_name, record in CONTACT_DICT.items():
+            if input_contact_name.lower() in contact_name.lower():
+                return record.days_to_birthday()
+
+    else:
+        raise ValueError("Parameter 'contact name' is empty, try again or use 'help'")
+
+    if result_list:
+        return "\n".join(result_list)
+    else:
+        return f"There are no '{input_contact_name}' matches among contacts"
 
 def get_formated_contact(contact_name, phone):
     return f"{contact_name}: {phone}"
-
 
 COMMANDS_LIST = {"hello": hello,
                  "help": help,
@@ -190,23 +197,27 @@ COMMANDS_LIST = {"hello": hello,
                  "show all": show_all,
                  "show": show_all,
                  "good bye": exit,
-                 "close": exit,
-                 "stop": exit,
-                 "exit": exit}
+                 "exit": exit,
+                 "bd": days_to_birthday}
 
 CONTACT_DICT = AddressBook()
 
-previous_contacts = {"Bob Marley": "0967845456",
+@input_error
+def input_previosly_contacts():
+    previous_contacts = {"Bob Marley": "0967845456",
                      "Borys Johnson": "0967845111",
                      "Lara Croft": "0967111456",
                      "Bred Pitt": "0961223456",
                      "Test": "123"}
 
-for k, v in previous_contacts.items():
-    CONTACT_DICT.add_record(Record(Name(k), Phone(v)))
+    for k, v in previous_contacts.items():
+        CONTACT_DICT.add_record(Record(Name(k), Phone(v), Birthday("2020.04.30")))
 
 
 def main():
+
+    input_previosly_contacts()
+
     while True:
 
         input_data = input("Input command (For help use command 'help'):")
