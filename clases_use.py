@@ -1,15 +1,34 @@
 from collections import UserDict
+from datetime import datetime, timedelta
 
 
 class Field:
     def __init__(self, value):
-        if not isinstance(value, str):
-            raise ValueError("Inputed data must be str!")
-
+        self.__value = None
         self.value = value
 
     def __str__(self):
-        return self.value
+        return self.__value
+
+    def __repr__(self):
+        return str(self.__value)
+
+    @property
+    def value(self):
+        return self.__value
+
+    @value.setter
+    def value(self, value):
+
+        if isinstance(self, Phone):
+            for ch in value:
+                if not ch.isdigit():
+                    raise ValueError(f"Inputted not correctly phone: {value}: must consist only digits!")
+
+            self.__value = value
+
+        elif isinstance(self, Birthday):
+            self.__value = value
 
 
 class Name(Field):
@@ -18,14 +37,22 @@ class Name(Field):
 
 class Phone(Field):
 
-    def change_phone(self, new_phone: str):
-        self.value = new_phone
+    def change_phone(self, new_phone):
+        self.value = new_phone.value
+
+    def __eq__(self, other):
+        return self.value == other.value
+
+
+class Birthday(Field):
+    pass
 
 
 class Record:
-    def __init__(self, name: Name, phone: Phone = None):
+    def __init__(self, name: Name, phone: Phone = None, birthday: Birthday = None):
         self.name = name
         self.phones = []
+        self.birthday = birthday
 
         if phone:
             if not isinstance(phone, Phone):
@@ -34,7 +61,7 @@ class Record:
             self.phones.append(phone)
 
     def __str__(self):
-        return f"{self.name}: {', '.join([str(i) for i in self.phones])}"
+        return f"{self.name}: {', '.join([str(i) for i in self.phones])} {': ' + str(self.birthday) if self.birthday else ''}"
 
     def add_phone(self, phone: Phone):
 
@@ -55,15 +82,9 @@ class Record:
                     self.phones.remove(exist_phone)
                     return f"Phone {phone} removed!"
 
-    def change_phone(self, old_phone: Phone, new_phone: str):
+    def change_phone(self, old_phone: Phone, new_phone: Phone):
 
-        if not isinstance(new_phone, str):
-            raise ValueError("New phone must be string")
-
-        if not isinstance(old_phone, Phone):
-            raise ValueError("Old phone must be class Phone")
-
-        if old_phone.value == new_phone:
+        if old_phone == new_phone:
             return f"The phones are the same"
 
         phone_changed = False
@@ -77,11 +98,44 @@ class Record:
         else:
             return f"Phone {old_phone} cant be changed! reason: phone exist!"
 
+    def add_birthday(self, birthday):
+        self.birthday = birthday
+        return f"Birthday {birthday} added to {self}"
+
+    def days_to_birthday(self):
+
+        if self.birthday:
+
+            tooday = datetime.today()
+
+            birthday_str = self.birthday.value
+
+            list_b_data = birthday_str.split(".")
+
+            datetime_birth = datetime(int(list_b_data[0]), int(list_b_data[1]), int(list_b_data[2]))
+
+            year = tooday.year
+
+            if datetime_birth.month == tooday.month and datetime_birth.day == tooday.day:
+                return f"Day to next birthday: 0"
+
+            elif datetime_birth.month < tooday.month:
+                year += 1
+            elif datetime_birth.month == tooday.month and datetime_birth.day < tooday.day:
+                year += 1
+
+            difference_dates: timedelta = datetime(year, datetime_birth.month, datetime_birth.day) - tooday
+
+            return f"Contact: {self} Day to next birthday: {difference_dates.days + 1}"
+        else:
+            return f"{self} birthday is empty!"
+
 
 class AddressBook(UserDict):
 
     def add_record(self, record: Record):
         self.data[record.name.value] = record
+        # return f"{self} added to adres book!"
 
     def __str__(self):
         return ";\n".join([f"{k}: {v}" for k, v in self.data.items()])
@@ -91,11 +145,13 @@ if __name__ == '__main__':
     book = AddressBook()
 
     record1 = Record(Name("Тест1"), Phone("0960969696"))
-    record1.add_phone(Phone("987865421"))
-    print("record1: ", record1)
+    print(record1.days_to_birthday())
 
-    record1.remove_phone("0960969696")
-    print("record1: ", record1)
+    # record1.add_phone(Phone("987865421"))
+    # print("record1: ", record1)
+    #
+    # record1.remove_phone("0960969696")
+    # print("record1: ", record1)
 
     # record1.change_phone(Phone("0960969696"), "0960969696")
     #

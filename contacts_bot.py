@@ -16,6 +16,7 @@ def input_error(func):
     return wrapper
 
 
+
 @input_error
 def get_func_from_text(input_text: str):
     input_command = input_text.strip().split(" ")[0]
@@ -127,19 +128,20 @@ def change(*args):
 
         phones_params = params_list[1].strip().split(" ")
 
-        old_phone = phones_params[0]
+        old_phone = Phone(phones_params[0])
+        new_phone = Phone(params_list[2].strip().split(" ")[0])
 
-        for ch in old_phone:
-            if not ch.isdigit():
-                return f"Inputted not correctly data: {old_phone}: must consist only digits!"
+        # for ch in old_phone:
+        #     if not ch.isdigit():
+        #         return f"Inputted not correctly data: {old_phone}: must consist only digits!"
+        #
+        # new_phone = params_list[2].strip().split(" ")[0]
+        #
+        # for ch in new_phone:
+        #     if not ch.isdigit():
+        #         return f"Inputted not correctly data: {new_phone}: must consist only digits!"
 
-        new_phone = params_list[2].strip().split(" ")[0]
-
-        for ch in new_phone:
-            if not ch.isdigit():
-                return f"Inputted not correctly data: {new_phone}: must consist only digits!"
-
-        result = record_exist.change_phone(Phone(old_phone), new_phone)
+        result = record_exist.change_phone(old_phone, new_phone)
 
         return result
 
