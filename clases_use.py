@@ -14,31 +14,6 @@ class Field:
     def __repr__(self):
         return str(self.__value)
 
-    @property
-    def value(self):
-        return self.__value
-
-    @value.setter
-    def value(self, value: str):
-
-        if isinstance(self, Phone):
-            for ch in value:
-                if not ch.isdigit():
-                    raise ValueError(f"Inputted not correctly phone: {value}: must consist only digits!")
-        elif isinstance(self, Birthday):
-
-            list_birthday_parts = [int(i.strip()) for i in value.split(".")]
-
-            if len(list_birthday_parts) != 3:
-                raise ValueError(f"Inputted date of birth: {value}: non correct! Use format year.month.day")
-
-            datetime_b = datetime(list_birthday_parts[0], list_birthday_parts[1], list_birthday_parts[2])
-
-            if datetime_b.date() >= datetime.today().date():
-                raise ValueError(f"Inputted date of birth: {value}: non correct!")
-
-        self.__value = value
-
 
 class Name(Field):
     pass
@@ -46,15 +21,42 @@ class Name(Field):
 
 class Phone(Field):
 
-    def change_phone(self, new_phone):
-        self.value = new_phone.value
+    @property
+    def value(self):
+        return self.__value
+
+    @value.setter
+    def value(self, value: str):
+        for ch in value:
+            if not ch.isdigit():
+                raise ValueError(f"Inputted not correctly phone: {value}: must consist only digits!")
+
+        self.__value = value
 
     def __eq__(self, other):
         return self.value == other.value
 
 
 class Birthday(Field):
-    pass
+
+    @property
+    def value(self):
+        return self.__value
+
+    @value.setter
+    def value(self, value: str):
+
+        list_birthday_parts = [int(i.strip()) for i in value.split(".")]
+
+        if len(list_birthday_parts) != 3:
+            raise ValueError(f"Inputted date of birth: {value}: non correct! Use format year.month.day")
+
+        datetime_b = datetime(list_birthday_parts[0], list_birthday_parts[1], list_birthday_parts[2])
+
+        if datetime_b.date() >= datetime.today().date():
+            raise ValueError(f"Inputted date of birth: {value}: non correct!")
+
+        self.__value = value
 
 
 class Record:
@@ -102,7 +104,7 @@ class Record:
         phone_changed = False
         for exist_phone in self.phones:
             if exist_phone.value == old_phone.value:
-                exist_phone.change_phone(new_phone)
+                exist_phone.value = new_phone.value
                 phone_changed = True
 
         if phone_changed:
@@ -161,26 +163,26 @@ class AddressBook(UserDict):
         return ";\n".join([f"{k}: {v}" for k, v in self.data.items()])
 
 
-if __name__ == '__main__':
-    book = AddressBook()
-
-    record1 = Record(Name("Тест1"), Phone("0960969696"))
-    print(record1.days_to_birthday())
-
-    # record1.add_phone(Phone("987865421"))
-    # print("record1: ", record1)
-    #
-    # record1.remove_phone("0960969696")
-    # print("record1: ", record1)
-
-    # record1.change_phone(Phone("0960969696"), "0960969696")
-    #
-    # print("record1: ", record1)
-    #
-    # book.add_record(record1)
-    #
-    # record2 = Record(Name("Тест2"), Phone("987865421"))
-    #
-    # book.add_record(record2)
-    #
-    # print("AddressBook: ", book)
+# if __name__ == '__main__':
+#     book = AddressBook()
+#
+#     record1 = Record(Name("Тест1"), Phone("0960969696"), Birthday("234234"))
+#     print(record1.days_to_birthday())
+#
+#     # record1.add_phone(Phone("987865421"))
+#     # print("record1: ", record1)
+#     #
+#     # record1.remove_phone("0960969696")
+#     # print("record1: ", record1)
+#
+#     # record1.change_phone(Phone("0960969696"), "0960969696")
+#     #
+#     # print("record1: ", record1)
+#     #
+#     # book.add_record(record1)
+#     #
+#     # record2 = Record(Name("Тест2"), Phone("987865421"))
+#     #
+#     # book.add_record(record2)
+#     #
+#     # print("AddressBook: ", book)
